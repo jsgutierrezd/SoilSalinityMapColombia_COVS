@@ -1,0 +1,1 @@
+setwd("~/SoilSalinityMapColombia_COVS")
