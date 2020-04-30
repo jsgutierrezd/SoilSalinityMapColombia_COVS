@@ -13,8 +13,19 @@ lim <- readOGR("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\LIMITES\\LIMITE_NAL
 cov <- stack("G:/My Drive/IGAC_2020/SALINIDAD/INSUMOS/COVARIABLES/COVARIABLES/COVARIABLES_VF_RASTERIZADAS/COV_VF.tif")
 names(cov) <- readRDS("G:/My Drive/IGAC_2020/SALINIDAD/INSUMOS/COVARIABLES/COVARIABLES/COVARIABLES_VF_RASTERIZADAS/namesCovariables_VF.rds")
 names(cov)
-#cov[[136]]
+cov <- cov[[-c(136:140)]]
 
+##Function to compute binary variables (dummy)
+dummyRaster <- function(rast){
+  rast <- as.factor(rast)
+  result <- list()
+  for(i in 1:length(levels(rast)[[1]][[1]])){
+    result[[i]] <- rast == levels(rast)[[1]][[1]][i]
+    names(result[[i]]) <- paste0(names(rast),
+                                 levels(rast)[[1]][[1]][i])
+  }
+  return(stack(result))
+}
 
 ###MATERIAL PARENTAL######
 MATPAR <- readOGR(dsn="G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COVARIABLES\\COVARIABLES_IGAC\\MATERIAL_PARENTAL\\Material_Parental.shp")
@@ -23,18 +34,17 @@ MATPAR$Clas_MP_char <- as.character(MATPAR$Clas_MP)
 MATPAR$MP_RAST <- ifelse(MATPAR$Clas_MP_char=="Aeropuerto"|MATPAR$Clas_MP_char=="Arenal"|
                            MATPAR$Clas_MP_char=="Base Militar"|MATPAR$Clas_MP_char=="Basurero"|
                            MATPAR$Clas_MP_char=="CA"|MATPAR$Clas_MP_char=="Cantera"|
-                           MATPAR$Clas_MP_char=="Represa"|MATPAR$Clas_MP_char=="Edificación"|
+                           MATPAR$Clas_MP_char=="Represa"|MATPAR$Clas_MP_char=="EdificaciÃ³n"|
                            MATPAR$Clas_MP_char=="ZU",
                          NA,MATPAR$Clas_MP_char) %>% as.factor()
 MATPAR_rast <- rasterize(MATPAR, cov, 'MP_RAST')
 MATPAR_rast_res <- resample(MATPAR_rast,cov,method="bilinear")
 values(MATPAR_rast_res) <- round(values(MATPAR_rast_res),0)
 names(MATPAR_rast_res) <- 'PAR_MAT'
-#(mp_dummy <- dummyRaster(MP_rast_res))
-#names(mp_dummy) <- levels(factor(SUELOS_PROY$MAT_PAR))
-cov <- stack(cov, MATPAR_rast_res)
+(mp_dummy <- dummyRaster(MATPAR_rast_res))
+names(mp_dummy) <- levels(factor(MATPAR$MP_RAST))
+cov <- stack(cov,MATPAR_rast_res, mp_dummy)
 names(cov)
-
 
 
 ##Land cover
@@ -50,9 +60,9 @@ landcover_rast <- rasterize(landcover, cov, 'landcover_RAST')
 landcover_rast_res <- resample(landcover_rast,cov,method="bilinear")
 values(landcover_rast_res) <- round(values(landcover_rast_res),0)
 names(landcover_rast_res) <- 'LANDCOVER'
-#(mp_dummy <- dummyRaster(MP_rast_res))
-#names(mp_dummy) <- levels(factor(SUELOS_PROY$MAT_PAR))
-cov <- stack(cov, landcover_rast_res)
+(lc_dummy <- dummyRaster(landcover_rast_res))
+names(lc_dummy) <- levels(factor(landcover$landcover_RAST))
+cov <- stack(cov,landcover_rast_res, lc_dummy)
 names(cov)
 
 
@@ -65,18 +75,22 @@ order$order_RAST <- ifelse(order$Significad=="Aeropuerto"|order$Significad=="Rep
                              order$Significad=="Tierra Relave Carbón"|order$Significad=="Arenal"|
                              order$Significad=="Base Militar"|order$Significad=="Basurero"|
                              order$Significad=="CA"|order$Significad=="Cantera"|
-                             order$Significad=="Cuerpos de agua"|order$Significad=="Edificación"|
+                             order$Significad=="Cuerpos de agua"|order$Significad=="EdificaciÃ³n.2"|
                              order$Significad=="Fosa Mina Carbón"|order$Significad=="Misceláneo Erosionado"|
                              order$Significad=="Misceláneo Rocoso"|order$Significad=="Nieves Perpetuas"|
-                             order$Significad=="Saladares"|order$Significad=="Zonas urbanas",
-                           NA,order$Significad) %>% as.factor()
+                             order$Significad=="Saladares"|order$Significad=="Zonas urbanas"|
+                             order$Significad=="Tierra Relave CarbÃ³n"|order$Significad=="EdificaciÃ³n"|
+                             order$Significad=="Fosa Mina CarbÃ³n"|order$Significad=="MiscelÃ¡neo Erosionado"|
+                             order$Significad=="MiscelÃ¡neo Rocoso",
+                            NA,order$Significad) %>% as.factor()
 order_rast <- rasterize(order, cov, 'order_RAST')
 order_rast_res <- resample(order_rast,cov,method="bilinear")
 values(order_rast_res) <- round(values(order_rast_res),0)
 names(order_rast_res) <- 'soilorder'
-cov <- stack(cov, order_rast_res)
+(or_dummy <- dummyRaster(order_rast_res))
+names(or_dummy) <- levels(factor(order$order_RAST))
+cov <- stack(cov,order_rast_res, or_dummy)
 names(cov)
-
 
 ##Mosaics Landsat8 - Sentinel2 - MODISMOD09A1.006
 ST2 <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\IMAGENES\\ST2.tif")
@@ -162,7 +176,9 @@ abline(h=0, v=0, lty=2, col=8)
 symbols(0, 0, 1, inches=F, add=T)
 symbols(0, 0, sqrt(.5), inches=F, add=T)
 arrows(0, 0, corvar[,1], corvar[,2], length=.1)
-text(corvar[,1], corvar[,3], colnames(ls8fin1[,-c(15,16)]), pos=4, offset=.6, col=2, font=2)
+text(corvar[,1], corvar[,3], colnames(ls8fin1[,-c(1,15,16)]), pos=4, offset=.6, col=2, font=2)
+
+biplot(x = pca, scale = 0, cex = 0.6, col = c("blue4", "brown3"))
 
 #Scree plot
 x11()
@@ -199,8 +215,33 @@ rm(ls8fin1)
 rm(Pred.pcs)
 rm(temp)
 rm(pca)
+rm(order)
+rm(landcover_rast_res)
+rm(landcover)
+rm(order_RAST)
+rm(order_rast)
+rm(order_rast_res)
+rm(MATPAR)
+rm(MATPAR_rast_res)
+rm(MATPAR_rast)
+rm(lc_dummy)
+rm(mp_dummy)
+rm(or_dummy)
+rm(parmat)
+rm(lim)
+names(cov)
 
+cov_1 <- cov
 
+cov_1 <- cov_1[[-c(17,22,27,34,48,49,50,51,52,53,54,55,56,57,58,59,60,
+                   61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,
+                   81,82,83,84,87,88,89,90,91,92,93,94,95,96,97,98,99,100,
+                   101,102,106,107,108,109,110,117,133)]]
+names(cov_1)
+
+cov <- cov_1
+
+rm(cov_1)
 
 cov <- as(cov, "SpatialGridDataFrame")
 cov1 <- data.frame(cov@data, coordinates(cov))
@@ -211,6 +252,11 @@ save(cov1, file="covariateStack.rda")
 load("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\covariateStack.rda")
 names(cov1)
 data.frame(names(cov1))
+
+
+
+# cov1 <- cov[[c(1:135)]]
+# cov2 <- cov[[c(136:242)]]
 
 
 # writeRaster(cov,"G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV.tif")
