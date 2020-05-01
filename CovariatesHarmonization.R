@@ -10,10 +10,10 @@ library(magrittr)
 lim <- readOGR("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\LIMITES\\LIMITE_NAL_CONT_WGS84.shp")
 
 ##Covariates >> WorldGrids and DEM derivated maps
-cov <- stack("G:/My Drive/IGAC_2020/SALINIDAD/INSUMOS/COVARIABLES/COVARIABLES/COVARIABLES_VF_RASTERIZADAS/COV_VF.tif")
-names(cov) <- readRDS("G:/My Drive/IGAC_2020/SALINIDAD/INSUMOS/COVARIABLES/COVARIABLES/COVARIABLES_VF_RASTERIZADAS/namesCovariables_VF.rds")
+cov <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\WORLDGRIDS\\CovWorldGrids.tif")
+names(cov) <- readRDS("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\WORLDGRIDS\\NamesCovWorldGrids.rds")
 names(cov)
-cov <- cov[[-c(136:140)]]
+
 
 ##Function to compute binary variables (dummy)
 dummyRaster <- function(rast){
@@ -28,7 +28,7 @@ dummyRaster <- function(rast){
 }
 
 ###MATERIAL PARENTAL######
-MATPAR <- readOGR(dsn="G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COVARIABLES\\COVARIABLES_IGAC\\MATERIAL_PARENTAL\\Material_Parental.shp")
+MATPAR <- readOGR(dsn="G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\SHP_IGAC\\MATERIAL_PARENTAL\\Material_Parental.shp")
 MATPAR <- spTransform (MATPAR, CRS=projection(cov))
 MATPAR$Clas_MP_char <- as.character(MATPAR$Clas_MP)
 MATPAR$MP_RAST <- ifelse(MATPAR$Clas_MP_char=="Aeropuerto"|MATPAR$Clas_MP_char=="Arenal"|
@@ -48,7 +48,7 @@ names(cov)
 
 
 ##Land cover
-landcover <- readOGR(dsn="G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COVARIABLES\\COVARIABLES_IGAC\\COBERTURAS_V1.0_2010_2012\\Cobertura_RP.shp")
+landcover <- readOGR(dsn="G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\SHP_IGAC\\COBERTURAS_V1.0_2010_2012\\Cobertura_RP.shp")
 landcover <- spTransform (landcover, CRS=projection(cov))
 landcover$LEYENDA3N_char <- as.character(landcover$LEYENDA3N)
 landcover$landcover_RAST <- ifelse(landcover$LEYENDA3N_char=="1.1.1. Tejido urbano continuo"|landcover$LEYENDA3N_char=="1.1.2. Tejido urbano discontinuo"|
@@ -67,7 +67,7 @@ names(cov)
 
 
 ##SOIL ORDER
-order <- readOGR(dsn="G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COVARIABLES\\COVARIABLES_IGAC\\ORDENES_SUELOS\\Ordenes_Suelos.shp")
+order <- readOGR(dsn="G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\SHP_IGAC\\ORDENES_SUELOS\\Ordenes_Suelos.shp")
 order <- spTransform (order, CRS=projection(cov))
 order$Significad <- as.character(order$Significad)
 data.frame(unique(order$Significad))
@@ -91,6 +91,7 @@ names(order_rast_res) <- 'soilorder'
 names(or_dummy) <- levels(factor(order$order_RAST))
 cov <- stack(cov,order_rast_res, or_dummy)
 names(cov)
+
 
 ##Mosaics Landsat8 - Sentinel2 - MODISMOD09A1.006
 ST2 <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\IMAGENES\\ST2.tif")
@@ -208,42 +209,9 @@ names(cov)
 cov <- stack(cov,ls8fin1)
 names(cov)
 
-
-rm(LS8)
-rm(ls8fin)
-rm(ls8fin1)
-rm(Pred.pcs)
-rm(temp)
-rm(pca)
-rm(order)
-rm(landcover_rast_res)
-rm(landcover)
-rm(order_RAST)
-rm(order_rast)
-rm(order_rast_res)
-rm(MATPAR)
-rm(MATPAR_rast_res)
-rm(MATPAR_rast)
-rm(lc_dummy)
-rm(mp_dummy)
-rm(or_dummy)
-rm(parmat)
-rm(lim)
-names(cov)
-
-cov_1 <- cov
-
-cov_1 <- cov_1[[-c(17,22,27,34,48,49,50,51,52,53,54,55,56,57,58,59,60,
-                   61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,
-                   81,82,83,84,87,88,89,90,91,92,93,94,95,96,97,98,99,100,
-                   101,102,106,107,108,109,110,117,133)]]
-names(cov_1)
-
-cov <- cov_1
-
-rm(cov_1)
-
 cov <- as(cov, "SpatialGridDataFrame")
+cov <- stack(cov)
+writeRaster(cov,"COVS_30042020.tif")
 cov1 <- data.frame(cov@data, coordinates(cov))
 # cov <- as(cov, "data.frame")
 class(cov1)
@@ -252,16 +220,6 @@ save(cov1, file="covariateStack.rda")
 load("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\covariateStack.rda")
 names(cov1)
 data.frame(names(cov1))
-
-
-
-# cov1 <- cov[[c(1:135)]]
-# cov2 <- cov[[c(136:242)]]
-
-
-# writeRaster(cov,"G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV.tif")
-# saveRDS(names(cov1), "G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\NAMES_COV.rds")
-#plot(cov[[134]])
 
 
 
