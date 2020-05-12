@@ -92,6 +92,51 @@ names(or_dummy) <- levels(factor(order$order_RAST))
 cov <- stack(cov,order_rast_res, or_dummy)
 names(cov)
 
+####SOIL SALINITY-IDEAM
+#tipo de salinidad
+ideam <- readOGR(dsn="G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\SHP\\E_DS_Salinizacion_100K_2016_2017.shp")
+ideam <- spTransform (ideam, CRS=projection(cov))
+data.frame(unique(ideam$TIPO))
+ideam$TIPO <- ideam$TIPO %>%  as.factor()
+levels(ideam$TIPO) <- c("Anthropogenic","Mixed","Natural","Non_saline")
+tipo_rast <- rasterize(ideam, cov, 'TIPO')
+tipo_rast_res <- resample(tipo_rast,cov,method="bilinear")
+values(tipo_rast_res) <- round(values(tipo_rast_res),0)
+names(tipo_rast_res) <- 'sal_type'
+(tip_dummy <- dummyRaster(tipo_rast_res))
+names(tip_dummy) <- levels(factor(ideam$TIPO))
+cov <- stack(cov,tipo_rast_res, tip_dummy)
+names(cov)
+
+#grado de salinidad
+data.frame(unique(ideam$GRADO))
+ideam$GRADO <- ideam$GRADO %>%  as.factor()
+levels(ideam$GRADO) <- c("Ligero","Moderado","Muy_ligero","Muy_salino","No_salino","Salino")
+grado_rast <- rasterize(ideam, cov, 'GRADO')
+grado_rast_res <- resample(grado_rast,cov,method="bilinear")
+values(grado_rast_res) <- round(values(grado_rast_res),0)
+names(grado_rast_res) <- 'sal_degree'
+(gr_dummy <- dummyRaster(grado_rast_res))
+names(gr_dummy) <- levels(factor(ideam$GRADO))
+#cov <- stack(cov,grado_rast_res, gr_dummy)
+#names(cov)
+
+#clase de salinidad
+data.frame(unique(ideam$clase))
+ideam$CLASE <- ideam$CLASE %>%  as.factor()
+ideam$clase <- ifelse(ideam$CLASE=="N/A",NA,ideam$CLASE)%>%as.factor()
+levels(ideam$clase) <- c("Al","AlNa","Ca","Mg","MgCa","Na",
+                         "NaCa","NaMg","NaMgSA","NaSA","NS","SA","SAMg","Sl","SlCa",
+                         "SlNa","SlNaCa","SlNaMg","SlNaMgCa","SlSA")
+levels(ideam$clase)
+clas_rast <- rasterize(ideam, cov, 'clase')
+clas_rast_res <- resample(clas_rast,cov,method="bilinear")
+values(clas_rast_res) <- round(values(clas_rast_res),0)
+names(clas_rast_res) <- 'sal_class'
+(cl_dummy <- dummyRaster(clas_rast_res))
+names(cl_dummy) <- levels(factor(ideam$clase))
+cov <- stack(cov,clas_rast_res, cl_dummy)
+names(cov)
 
 ##Mosaics Landsat8 - Sentinel2 - MODISMOD09A1.006
 ST2 <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\IMAGENES\\ST2.tif")
@@ -221,6 +266,36 @@ load("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\covariateStack.r
 names(cov1)
 data.frame(names(cov1))
 
+cov <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\CovSSMAP.tif")
+names(cov) <- readRDS("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\NamesCovSSMAP.rds")
+
+tipo <- raster("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\tipo.tif")
+tipo_d <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\tipo_dummies.tif")
+names(tipo_d) <- c("t_antrop","t_mixto","t_natural","t_nosalino")
+saveRDS(names(tipo_d), "G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\namestipo_dummies.rds")
+
+grado <- raster("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\grado.tif")
+grado_d <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\grado_dummies.tif")
+names(grado_d) <- c("g_ligero","g_mod","g_muylig","g_muysal","g_nosal","g_salino")
+saveRDS(names(grado_d), "G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\namesgrado_dummies.rds")
+
+clase <- raster("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\clase.tif")
+clase_d <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\clase_dummies.tif")
+names(clase_d) <- c("c_NS","c_Al","c_Na","c_Ca","c_Mg",
+                    "c_NaMg","c_SlNa","c_SlNaMg","c_NaMgSA","c_SA",
+                    "c_SAMg","c_Sl","c_SlCa","c_SlNaMgCa","c_MgCa",
+                    "c_SlNaCa","c_AlNa","c_SlSA","c_NaSA","c_NaCa")
+saveRDS(names(clase_d), "G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\IDEAM\\namesclase_dummies.rds")
 
 
+cov <- stack(cov,tipo,tipo_d,
+             grado,grado_d,
+             clase,clase_d)
+cov
+names(cov)
+names(cov[[190]]) <- "tipo_salinidad"
+names(cov[[195]]) <- "grado_salinidad"
+names(cov[[202]]) <- "clase_salinidad"
 
+writeRaster(cov,"G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\CovSSMAP_12052020.tif")
+saveRDS(names(cov),"G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\NamesCovSSMAP_12052020.rds")
