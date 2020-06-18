@@ -9,9 +9,9 @@ library(magrittr)
 ##Country boundary
 lim <- readOGR("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\LIMITES\\LIMITE_NAL_CONT_WGS84.shp")
 
-##Covariates >> WorldGrids and DEM derivated maps
-cov <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\WORLDGRIDS\\CovWorldGrids.tif")
-names(cov) <- readRDS("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\WORLDGRIDS\\NamesCovWorldGrids.rds")
+##Covariates >> WorldGrids DEM and derivated maps
+cov <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\DEMDERIVATES\\DEMENV5.tif")
+names(cov) <- readRDS("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\DEMDERIVATES\\NamesCovDEM.rds")
 names(cov)
 
 
@@ -197,7 +197,7 @@ names(modisfin) <- indexes
 modisfin$CRSI <- sqrt((MODIS$NIR * MODIS$RED - MODIS$BLUE * MODIS$GREEN)/
                         (MODIS$NIR * MODIS$GREEN + MODIS$BLUE * MODIS$GREEN))
 
-###PCA
+### PRINCIPAL COMPONENT ANALYSIS
 
 library(corrplot)
 library(factoextra)
