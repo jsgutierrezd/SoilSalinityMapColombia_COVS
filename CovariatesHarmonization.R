@@ -301,5 +301,5 @@ names(cov[[190]]) <- "tipo_salinidad"
 names(cov[[195]]) <- "grado_salinidad"
 names(cov[[202]]) <- "clase_salinidad"
 
-writeRaster(cov,"G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\CovSSMAP_12052020.tif")
-saveRDS(names(cov),"G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\NamesCovSSMAP_12052020.rds")
+writeRaster(cov,"G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\CovSSMAP_16062020.tif")
+saveRDS(names(cov),"G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\NamesCovSSMAP_16062020.rds")
