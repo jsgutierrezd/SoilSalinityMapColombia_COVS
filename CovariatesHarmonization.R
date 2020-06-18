@@ -12,7 +12,11 @@ lim <- readOGR("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\LIMITES\\LIMITE_NAL
 ##Covariates >> WorldGrids DEM and derivated maps
 cov <- stack("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\DEMDERIVATES\\DEMENV5.tif")
 names(cov) <- readRDS("G:\\My Drive\\IGAC_2020\\SALINIDAD\\INSUMOS\\COVARIABLES\\COV_SSMAP\\DEMDERIVATES\\NamesCovDEM.rds")
+<<<<<<< HEAD
 
+=======
+names(cov)
+>>>>>>> 6c3743a481c4486d24e27294a7d94ca3ddcf0f72
 
 
 ##Function to compute binary variables (dummy)
